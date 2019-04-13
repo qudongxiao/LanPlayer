@@ -63,7 +63,7 @@
 		filters:{
 			fnFmt (path){
 				let index= path.lastIndexOf("/")
-				return path.slice(index+1)
+				return decodeURI( path.slice(index+1) )
 			}
 		},
 		computed: {
