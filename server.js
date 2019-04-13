@@ -2,6 +2,16 @@ var http = require('http');
 var fs = require('fs');
 var express = require('express');
 var app = express();  
+var os=require('os'), iptable="", ifaces=os.networkInterfaces();
+for (var dev in ifaces) {
+  ifaces[dev].forEach(function(item){
+    if ( item.family === 'IPv4' && item.address !== '127.0.0.1' && !item.internal ) {
+      iptable= item.address;
+    }
+  });
+}
+
+
 app.use("/static", express.static(__dirname + '\\static'));
 
 var videoPath = __dirname + "\\static\\videos\\";
@@ -40,7 +50,11 @@ function reGetFileInfos() {
 } 
 
 app.get('/api/vlist', function (req, res) {
-	res.json(videoList);
+	let resp_data= {
+		"domain": iptable,
+		"data":videoList
+	};
+	res.json(resp_data);
 });
  
 

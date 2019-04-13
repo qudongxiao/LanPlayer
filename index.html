@@ -24,7 +24,7 @@
 			@pause="pause"
 			></video>
 		</div>
-		<div class="videoTitle" v-show="currentUrl">{{currentUrl | fnFmt}}</div>
+		<div class="videoTitle" v-show="currentUrl">{{domain}} / {{currentUrl | fnFmt}}</div>
 		<div class="controlBar">
 			<div class="btnPlay iconfont" @click="playOrPause" :class="[ isPlaying ? 'iconpause': 'iconplay' ]"></div>
 			<div class="btnBack iconfont iconback" @click="backClick"></div>
@@ -58,7 +58,8 @@
 			currentDuration:0,
 			timer:null,
 			timer2:null,
-			showMenu:true
+			showMenu:true,
+			domain:''
 		},
 		filters:{
 			fnFmt (path){
@@ -156,7 +157,8 @@
 		mounted (){
 			axios.get('/api/vlist')
 				.then( ( resp ) => {
-					this.list= resp.data
+					this.domain= resp.data.domain
+					this.list= resp.data.data
 				});
 				window.addEventListener("resize",this.setfontSize,!1)
 				this.setfontSize()
