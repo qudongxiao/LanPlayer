@@ -102,7 +102,15 @@
 			playOrPause(){
 				let video = this.$refs.player
 				if(video.paused){
-					video.play()
+					if(! this.currentUrl ){
+						if(this.list.length > 0){
+							this.currentIndex= 0
+							video.src = this.list[ this.currentIndex ]['url']
+							video.play()
+						}
+					}else{
+						video.play()
+					}
 				}else{
 					video.pause()
 				}
@@ -119,26 +127,25 @@
 			},
 			timeUpdate (event){
 				if(this.timer){
-                   return
+					return
                 }
                 this.timer= setTimeout(()=>{
-					 this.currentTime=  event.target.currentTime
-					 this.timer = null
+					this.currentTime=  event.target.currentTime
+					this.timer = null
                 },80)
 			},
 			loadedMetaData (event){
-				 this.currentDuration= event.target.duration
-				 this.currentUrl=  event.target.currentSrc
+				this.currentDuration= event.target.duration
+				this.currentUrl=  event.target.currentSrc
 			},
 			play (){
 				this.isPlaying= true
 				if(this.timer2){
                     clearTimeout(this.timer2) 
 				}
-             
 				this.timer2= setTimeout(()=>{
-						this.showMenu= false
-						this.timer2 = null
+					this.showMenu= false
+					this.timer2 = null
 				},500)
 				 
 			},
