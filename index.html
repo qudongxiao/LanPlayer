@@ -1,0 +1,164 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<meta name="apple-mobile-web-app-title" content="vue-player">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<title>LANPlayer  </title>
+	<link rel="apple-touch-icon-precomposed" href="/static/img/apple-touch-icon.png" >
+	<link href="/static/css/app.css" rel="stylesheet">
+	<link href="/static/fonts/iconfont.css" rel="stylesheet">
+</head>
+
+<body>
+
+<div id="app">
+	<div class="wrapper">
+		<div class="videobox">
+			<video ref="player" 
+			playsinline 
+			@timeupdate="timeUpdate" 
+			@loadedmetadata="loadedMetaData"
+			@play="play"
+			@pause="pause"
+			></video>
+		</div>
+		<div class="videoTitle" v-show="currentUrl">{{currentUrl | fnFmt}}</div>
+		<div class="controlBar">
+			<div class="btnPlay iconfont" @click="playOrPause" :class="[ isPlaying ? 'iconpause': 'iconplay' ]"></div>
+			<div class="btnBack iconfont iconback" @click="backClick"></div>
+			<div class="progress">{{progress}}</div>
+			<div class="btnForward iconfont iconforward" @click="forwardClick"></div>
+			<div class="btnVolume iconfont" @click="volClick"  :class="[ isMuted ? 'iconmuted' : 'iconvolume' ]"></div>
+			<div class="btnHands iconfont iconmenu" @click="handsClick"></div>
+		</div>
+
+		 <transition name="fade">
+		<div class="playList" v-show="showMenu">
+			<div class="inner"><div class="h"><div class="item" v-for="(item,index) of list" :key="index" :class="{actived : index=== currentIndex}" @click="listClick(item.url,index)"><span>{{item.name}}</span></div></div></div>
+		</div>
+		</transition>
+	</div>
+</div>
+
+
+<script src="/static/js/vue.js"></script>
+<script src="/static/js/axios.js"></script>
+	<script>
+	var vm= new Vue({
+		el: "#app",
+		data:{
+			list: [],
+			currentUrl:'',
+			currentIndex:-1,
+			currentTime:0,
+			isPlaying:false,
+			isMuted:false,
+			currentDuration:0,
+			timer:null,
+			timer2:null,
+			showMenu:true
+		},
+		filters:{
+			fnFmt (path){
+				let index= path.lastIndexOf("/")
+				return path.slice(index+1)
+			}
+		},
+		computed: {
+			progress (){
+				let timeFmt = function(value){
+					 let h = Math.floor(value/3600 )
+					 let m= Math.floor((value - h*3600 ) /60)
+					 let s= Math.floor( value -  h*3600 - m*60  )
+					 h= h < 10 ? '0'+h : h
+					 m= m < 10 ? '0'+m : m
+					 s= s < 10 ? '0'+s : s
+					 return h+":"+m+":"+s
+				}
+				return timeFmt(this.currentTime) + ' / ' + timeFmt(this.currentDuration)
+			}
+		},
+		methods:{
+			setfontSize (){
+				let html = document.documentElement
+				html.style.fontSize=html.getBoundingClientRect().width  / 10 + 'px'
+			},
+			listClick (url,index){
+				let video = this.$refs.player
+				this.currentIndex= index
+				video.src= url
+				video.play() 
+			},
+			handsClick (){
+				this.showMenu = ! this.showMenu
+			},
+			volClick (){
+				let video = this.$refs.player
+				video.muted = !video.muted
+				this.isMuted= video.muted
+			},
+			playOrPause(){
+				let video = this.$refs.player
+				if(video.paused){
+					video.play()
+				}else{
+					video.pause()
+				}
+			},
+			backClick (){
+				let video = this.$refs.player
+				let time= video.currentTime
+				video.currentTime= time - 10
+			},
+			forwardClick (){
+				let video = this.$refs.player
+				let time= video.currentTime
+				video.currentTime= time + 10
+			},
+			timeUpdate (event){
+				if(this.timer){
+                   return
+                }
+                this.timer= setTimeout(()=>{
+					 this.currentTime=  event.target.currentTime
+					 this.timer = null
+                },80)
+			},
+			loadedMetaData (event){
+				 this.currentDuration= event.target.duration
+				 this.currentUrl=  event.target.currentSrc
+			},
+			play (){
+				this.isPlaying= true
+				if(this.timer2){
+                    clearTimeout(this.timer2) 
+				}
+             
+				this.timer2= setTimeout(()=>{
+						this.showMenu= false
+						this.timer2 = null
+				},500)
+				 
+			},
+			pause (){
+				this.isPlaying= false
+			}
+		},
+		mounted (){
+			axios.get('/api/vlist')
+				.then( ( resp ) => {
+					this.list= resp.data
+				});
+				window.addEventListener("resize",this.setfontSize,!1)
+				this.setfontSize()
+		}
+	})
+
+	</script>
+
+
+</body>
+
+</html>
