@@ -1,2 +1,2 @@
 # LanPlayer
-express/vue搭建，躺在床上用手机观看局域网内电脑上下载的av
+express/vue搭建，躺在床上用手机观看局域网内电脑上下载的片子
